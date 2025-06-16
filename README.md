@@ -1,36 +1,107 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Local AI Assistant
 
-## Getting Started
+A powerful local AI assistant that helps with screen content recognition, math and physics problem solving, and essay writing.
 
-First, run the development server:
+## Features
 
+### Screen Content Recognition
+- Capture and analyze screen content
+- Extract text using OCR
+- Find specific text on screen
+- Detect mathematical equations
+
+### Math and Physics Problem Solver
+- Solve mathematical equations
+- Handle physics problems
+- Support for various problem types
+- Step-by-step solutions
+
+### Essay Writer
+- Generate essays on any topic
+- Multiple essay types (analytical, persuasive, descriptive, narrative)
+- Adjustable tone (formal, casual, academic)
+- Customizable length
+
+## Installation
+
+1. Clone the repository:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/yourusername/local-ai-assistant.git
+cd local-ai-assistant
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Install dependencies:
+```bash
+npm install
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+3. Install Tesseract OCR:
+- macOS: `brew install tesseract`
+- Linux: `sudo apt-get install tesseract-ocr`
+- Windows: Download and install from GitHub
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+4. Start the development server:
+```bash
+npm run dev
+```
 
-## Learn More
+The application will be available at `http://localhost:3000`
 
-To learn more about Next.js, take a look at the following resources:
+## Usage
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Screen Analysis
+1. Click on the "Screen Analysis" tab
+2. Use the buttons to capture screen content, extract text, find specific text, or detect equations
+3. View the results in the analysis panel
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Math & Physics Problem Solver
+1. Click on the "Math & Physics" tab
+2. Select the problem type (Mathematics or Physics)
+3. Enter your problem in the text area
+4. Click "Solve Problem" to get the solution
 
-## Deploy on Vercel
+### Essay Writer
+1. Click on the "Essay Writer" tab
+2. Enter your essay topic
+3. Select the essay type, tone, and length
+4. Click "Generate Essay" to create your essay
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Development
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Project Structure
+```
+local-ai-assistant/
+├── src/
+│   ├── app/
+│   │   ├── layout.tsx
+│   │   └── page.tsx
+│   ├── components/
+│   │   └── ui/
+│   └── lib/
+│       └── utils.ts
+├── public/
+├── package.json
+└── README.md
+```
+
+### Adding New Features
+1. Create new components in `src/components/`
+2. Add new API routes in `src/app/api/`
+3. Update the UI in `src/app/page.tsx`
+4. Test thoroughly
+
+## Contributing
+1. Fork the repository
+2. Create a feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a Pull Request
+
+## License
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Acknowledgments
+- Next.js
+- Shadcn UI
+- Tesseract OCR
+- Ollama
