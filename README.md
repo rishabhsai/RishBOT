@@ -1,107 +1,86 @@
-# Local AI Assistant
+# RishBOT: Your Local AI Assistant 🤖
 
-A powerful local AI assistant that helps with screen content recognition, math and physics problem solving, and essay writing.
+A powerful, privacy-focused AI assistant that runs entirely on your local machine. Built with Next.js and Ollama, RishBOT provides intelligent assistance while keeping your data private.
 
-## Features
+## ✨ Features
 
-### Screen Content Recognition
+### 🎯 Screen Content Recognition
 - Capture and analyze screen content
 - Extract text using OCR
-- Find specific text on screen
+- Find specific text
 - Detect mathematical equations
 
-### Math and Physics Problem Solver
-- Solve mathematical equations
-- Handle physics problems
+### 🧮 Math & Physics Problem Solver
+- Solve complex mathematical equations
+- Tackle physics problems
+- Get step-by-step solutions
 - Support for various problem types
-- Step-by-step solutions
 
-### Essay Writer
-- Generate essays on any topic
-- Multiple essay types (analytical, persuasive, descriptive, narrative)
-- Adjustable tone (formal, casual, academic)
-- Customizable length
+### ✍️ Essay Writer
+- Generate well-structured essays
+- Multiple essay types (argumentative, descriptive, narrative, expository)
+- Customizable tone and length
+- Academic and creative writing support
 
-## Installation
+## 🛠️ Tech Stack
+
+- **Frontend**: Next.js 14
+- **UI Components**: Shadcn UI
+- **AI Model**: Ollama (Gemma 2B)
+- **OCR**: Tesseract.js
+- **Language**: TypeScript
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Node.js 18+ installed
+- Ollama installed and running
+- Gemma 2B model pulled in Ollama
+
+### Installation
 
 1. Clone the repository:
-```bash
-git clone https://github.com/yourusername/local-ai-assistant.git
-cd local-ai-assistant
-```
+   ```bash
+   git clone https://github.com/rishabhsai/RishBOT.git
+   cd RishBOT
+   ```
 
 2. Install dependencies:
-```bash
-npm install
-```
+   ```bash
+   npm install
+   ```
 
-3. Install Tesseract OCR:
-- macOS: `brew install tesseract`
-- Linux: `sudo apt-get install tesseract-ocr`
-- Windows: Download and install from GitHub
+3. Pull the Gemma model:
+   ```bash
+   ollama pull gemma:2b
+   ```
 
 4. Start the development server:
-```bash
-npm run dev
-```
+   ```bash
+   npm run dev
+   ```
 
-The application will be available at `http://localhost:3000`
+5. Open [http://localhost:3000](http://localhost:3000) in your browser
 
-## Usage
+## 🔒 Privacy Features
 
-### Screen Analysis
-1. Click on the "Screen Analysis" tab
-2. Use the buttons to capture screen content, extract text, find specific text, or detect equations
-3. View the results in the analysis panel
+- 100% local processing
+- No data sent to external servers
+- All computations happen on your machine
+- No API keys or external dependencies required
 
-### Math & Physics Problem Solver
-1. Click on the "Math & Physics" tab
-2. Select the problem type (Mathematics or Physics)
-3. Enter your problem in the text area
-4. Click "Solve Problem" to get the solution
+## 🤝 Contributing
 
-### Essay Writer
-1. Click on the "Essay Writer" tab
-2. Enter your essay topic
-3. Select the essay type, tone, and length
-4. Click "Generate Essay" to create your essay
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-## Development
+## 📝 License
 
-### Project Structure
-```
-local-ai-assistant/
-├── src/
-│   ├── app/
-│   │   ├── layout.tsx
-│   │   └── page.tsx
-│   ├── components/
-│   │   └── ui/
-│   └── lib/
-│       └── utils.ts
-├── public/
-├── package.json
-└── README.md
-```
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-### Adding New Features
-1. Create new components in `src/components/`
-2. Add new API routes in `src/app/api/`
-3. Update the UI in `src/app/page.tsx`
-4. Test thoroughly
+## 🙏 Acknowledgments
 
-## Contributing
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
-
-## License
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Acknowledgments
-- Next.js
-- Shadcn UI
-- Tesseract OCR
-- Ollama
+- [Ollama](https://github.com/ollama/ollama) for providing the local AI model
+- [Next.js](https://nextjs.org/) for the amazing framework
+- [Shadcn UI](https://ui.shadcn.com/) for the beautiful components
+- [Tesseract.js](https://github.com/naptha/tesseract.js) for OCR capabilities
