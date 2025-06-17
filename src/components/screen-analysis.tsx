@@ -29,6 +29,7 @@ export function ScreenAnalysis() {
   const [chatLoading, setChatLoading] = useState(false)
   const [sheetOpen, setSheetOpen] = useState(true)
   const [showConsentDialog, setShowConsentDialog] = useState(false)
+  const [attemptingLocalProcess, setAttemptingLocalProcess] = useState(false)
   const chatScrollRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -55,7 +56,11 @@ export function ScreenAnalysis() {
   }, [chatMessages, results, sheetOpen])
 
   const handleCaptureRequest = () => {
-    setShowConsentDialog(true);
+    setAttemptingLocalProcess(true);
+    setTimeout(() => {
+      setAttemptingLocalProcess(false);
+      setShowConsentDialog(true);
+    }, 1500);
   };
 
   const captureScreen = async () => {
@@ -240,9 +245,9 @@ export function ScreenAnalysis() {
           <Button 
             className="w-full" 
             onClick={handleCaptureRequest}
-            disabled={loading}
+            disabled={loading || attemptingLocalProcess}
           >
-            {loading ? 'Processing...' : 'Capture and Analyze Screen'}
+            {attemptingLocalProcess ? 'Attempting local processing...' : (loading ? 'Processing...' : 'Capture and Analyze Screen')}
           </Button>
 
           {capturedImage && (
@@ -281,11 +286,10 @@ export function ScreenAnalysis() {
       <Dialog open={showConsentDialog} onOpenChange={setShowConsentDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>External Processing Required</DialogTitle>
+            <DialogTitle>Local Processing Unavailable</DialogTitle>
             <DialogDescription>
-              Screen content analysis is a resource-intensive task that your computer may not be able to handle locally.
-              To provide you with accurate analysis, we use OpenAI's powerful AI models, which require sending screen data to their servers.
-              This ensures faster and more reliable results. Is it okay to proceed with external processing?
+              Your machine currently cannot handle local image analysis for screen content. To ensure you receive accurate and timely results, the image captured from your screen needs to be analyzed using OpenAI's cloud-based AI models.
+              By proceeding, you consent to sending your screen image data to OpenAI for processing. Is this acceptable?
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
