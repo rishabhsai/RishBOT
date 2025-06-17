@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
@@ -11,6 +11,25 @@ export function ProblemSolver() {
   const [type, setType] = useState('math')
   const [solution, setSolution] = useState('')
   const [loading, setLoading] = useState(false)
+  const solutionRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (solutionRef.current) {
+      if (typeof window !== 'undefined' && !(window as any).MathJax) {
+        const script = document.createElement('script')
+        script.src = 'https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js'
+        script.async = true
+        script.onload = () => {
+          if ((window as any).MathJax) {
+            (window as any).MathJax.typeset()
+          }
+        }
+        document.head.appendChild(script)
+      } else if ((window as any).MathJax) {
+        (window as any).MathJax.typesetPromise()
+      }
+    }
+  }, [solution])
 
   const solveProblem = async () => {
     if (!problem.trim()) {
@@ -79,7 +98,7 @@ export function ProblemSolver() {
           </div>
           <div className="border rounded-lg p-4">
             <h3 className="font-semibold mb-2">Solution</h3>
-            <div className="text-sm text-muted-foreground whitespace-pre-wrap">
+            <div ref={solutionRef} className="text-sm text-muted-foreground whitespace-pre-wrap">
               {solution || 'Enter a problem to see the solution here'}
             </div>
           </div>
