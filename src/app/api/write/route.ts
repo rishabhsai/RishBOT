@@ -22,7 +22,7 @@ export async function POST(req: Request) {
         messages: [
           {
             role: 'user',
-            content: `Write a ${length} ${type} essay about "${topic}" in a ${tone} tone. Here is some additional information to consider: ${additionalInfo}`
+            content: `Write a ${length} ${type} essay about "${topic}" in a ${tone} tone. Here is some additional information to consider: ${additionalInfo}, don't write in markdown.`
           }
         ],
         stream: false

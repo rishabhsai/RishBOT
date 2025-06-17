@@ -24,12 +24,14 @@ export function EssayWriter() {
   const essayRef = useRef<HTMLTextAreaElement>(null)
   const [sheetOpen, setSheetOpen] = useState(true)
   const [modificationPrompt, setModificationPrompt] = useState('')
+  const [wordCount, setWordCount] = useState(0)
 
   useEffect(() => {
     if (essayRef.current) {
       essayRef.current.style.height = 'auto';
       essayRef.current.style.height = essayRef.current.scrollHeight + 'px';
     }
+    setWordCount(essay.split(/\s+/).filter(Boolean).length);
   }, [essay]);
 
   const generateEssay = async () => {
@@ -212,7 +214,7 @@ export function EssayWriter() {
           </SheetContent>
         </Sheet>
       </CardHeader>
-      <CardContent className="flex-1 p-4 overflow-hidden">
+      <CardContent className="flex-1 p-4 overflow-hidden relative">
         <Textarea
           ref={essayRef}
           value={essay}
@@ -221,6 +223,9 @@ export function EssayWriter() {
           className="w-full h-full text-sm text-foreground whitespace-pre-wrap resize-none border-none focus-visible:ring-0 focus-visible:ring-offset-0"
           placeholder="Generate an essay to see it here..."
         />
+        <div className="absolute bottom-2 left-4 text-lg text-muted-foreground">
+          Word Count: {wordCount}
+        </div>
       </CardContent>
     </Card>
   )
