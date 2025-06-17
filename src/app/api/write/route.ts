@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 
 export async function POST(req: Request) {
   try {
-    const { topic, type, tone, length } = await req.json()
+    const { topic, type, tone, length, additionalInfo } = await req.json()
 
     if (!topic || !type || !tone || !length) {
       return NextResponse.json(
@@ -22,7 +22,7 @@ export async function POST(req: Request) {
         messages: [
           {
             role: 'user',
-            content: `Write a ${length} ${type} essay about "${topic}" in a ${tone} tone.`
+            content: `Write a ${length} ${type} essay about "${topic}" in a ${tone} tone. Here is some additional information to consider: ${additionalInfo}`
           }
         ],
         stream: false
