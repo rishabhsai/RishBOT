@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import Tesseract from 'tesseract.js'
+import OpenAI from 'openai'
 
 export async function POST(req: Request) {
   try {
@@ -12,26 +12,33 @@ export async function POST(req: Request) {
       )
     }
 
-    // Convert base64 to buffer
-    const imageBuffer = Buffer.from(image.split(',')[1], 'base64')
+    const openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    })
 
-    // Perform OCR
-    const result = await Tesseract.recognize(
-      imageBuffer,
-      'eng',
-      {
-        logger: m => console.log(m)
-      }
-    )
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4o',
+      messages: [
+        {
+          role: 'user',
+          content: [
+            { type: 'text', text: 'Analyze this image. Extract all visible text and provide a general summary or description of the content. If there are any mathematical equations, attempt to identify them.' },
+            { type: 'image_url', image_url: { url: image } },
+          ],
+        },
+      ],
+    })
+
+    const analysis = response.choices[0].message.content
 
     return NextResponse.json({
-      text: result.data.text,
-      confidence: result.data.confidence
+      text: analysis,
+      confidence: 100 // OpenAI doesn't provide a confidence score like Tesseract, so we'll set a placeholder
     })
-  } catch (error) {
-    console.error('Error analyzing screen:', error)
+  } catch (error: any) {
+    console.error('Error analyzing screen with OpenAI:', error)
     return NextResponse.json(
-      { error: 'Failed to analyze screen content' },
+      { error: `Failed to analyze screen content: ${error.message || error}` },
       { status: 500 }
     )
   }

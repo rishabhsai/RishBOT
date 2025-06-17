@@ -1,4 +1,4 @@
-# RishBOT: Your Local AI Assistant 🤖
+# RishBOT 🤖
 
 A powerful, privacy-focused AI assistant that runs entirely on your local machine. Built with Next.js and Ollama, RishBOT provides intelligent assistance while keeping your data private.
 

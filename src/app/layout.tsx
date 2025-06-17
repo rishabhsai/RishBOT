@@ -5,7 +5,7 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Local AI Assistant",
+  title: "RishBOT",
   description: "A powerful local AI assistant for screen content recognition, math and physics problem solving, and essay writing.",
 };
 

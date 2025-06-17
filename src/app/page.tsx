@@ -6,7 +6,7 @@ import { EssayWriter } from "@/components/essay-writer"
 export default function Home() {
   return (
     <main className="container mx-auto p-4">
-      <h1 className="text-4xl font-bold text-center mb-8">Local AI Assistant</h1>
+      <h1 className="text-4xl font-bold text-center mb-8">RishBOT</h1>
       <Tabs defaultValue="screen" className="w-full">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="screen">Screen Analysis</TabsTrigger>

@@ -1,19 +1,75 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Textarea } from '@/components/ui/textarea'
+import { Input } from '@/components/ui/input'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescription } from '@/components/ui/sheet'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
+import rehypeKatex from 'rehype-katex'
+import 'katex/dist/katex.min.css'
+
+interface ChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
 
 export function ScreenAnalysis() {
   const [results, setResults] = useState<string>('')
   const [loading, setLoading] = useState(false)
+  const [capturedImage, setCapturedImage] = useState<string | null>(null)
+  const [searchText, setSearchText] = useState<string>('')
+  const [foundMatches, setFoundMatches] = useState<number>(0)
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([])
+  const [chatInput, setChatInput] = useState<string>('')
+  const [chatLoading, setChatLoading] = useState(false)
+  const [sheetOpen, setSheetOpen] = useState(true)
+  const [showConsentDialog, setShowConsentDialog] = useState(false)
+  const chatScrollRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && !(window as any).MathJax) {
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js'
+      script.async = true
+      document.head.appendChild(script)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (sheetOpen && chatScrollRef.current && (window as any).MathJax) {
+      if ((window as any).MathJax.texReset) {
+        (window as any).MathJax.texReset();
+      }
+
+      (window as any).MathJax.typesetPromise().then(() => {
+        if (chatScrollRef.current) {
+          chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
+        }
+      });
+    }
+  }, [chatMessages, results, sheetOpen])
+
+  const handleCaptureRequest = () => {
+    setShowConsentDialog(true);
+  };
 
   const captureScreen = async () => {
+    setShowConsentDialog(false);
     try {
       setLoading(true)
-      // Use the Screen Capture API
+      setResults('')
+      setCapturedImage(null)
+      setFoundMatches(0)
+      setChatMessages([])
+      setSheetOpen(true)
+
       const stream = await navigator.mediaDevices.getDisplayMedia({
-        video: { mediaSource: 'screen' }
+        video: true
       })
       const video = document.createElement('video')
       video.srcObject = stream
@@ -26,13 +82,11 @@ export function ScreenAnalysis() {
         const ctx = canvas.getContext('2d')
         ctx?.drawImage(video, 0, 0)
         
-        // Convert to base64
         const image = canvas.toDataURL('image/png')
+        setCapturedImage(image)
         
-        // Stop all tracks
         stream.getTracks().forEach(track => track.stop())
         
-        // Send to API
         analyzeScreen(image)
       }
     } catch (error) {
@@ -55,67 +109,191 @@ export function ScreenAnalysis() {
       const data = await response.json()
       
       if (data.error) {
-        setResults(`Error: ${data.error}`)
+        setResults(`Error analyzing screen: ${data.error}`)
       } else {
-        setResults(`Extracted Text:\n${data.text}\n\nConfidence: ${data.confidence}%`)
+        setResults(data.text)
       }
-    } catch (error) {
-      console.error('Error analyzing screen:', error)
-      setResults('Failed to analyze screen content')
+    } catch (error: any) {
+      console.error('Error analyzing screen in frontend:', error)
+      setResults(`Failed to analyze screen content due to network or unexpected error: ${error.message || error}`)
     } finally {
       setLoading(false)
     }
   }
 
+  const handleFindText = () => {
+    if (searchText.trim() === '' || !results) {
+      setFoundMatches(0)
+      return
+    }
+    const regex = new RegExp(searchText.trim(), 'gi')
+    const matches = results.match(regex)
+    setFoundMatches(matches ? matches.length : 0)
+  }
+
+  const sendChatMessage = async () => {
+    if (!chatInput.trim() || !results) return
+
+    const newUserMessage: ChatMessage = { role: 'user', content: chatInput }
+    setChatMessages(prev => [...prev, newUserMessage])
+    setChatInput('')
+    setChatLoading(true)
+
+    try {
+      const response = await fetch('/api/screen/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          extractedText: results,
+          userQuery: newUserMessage.content,
+          chatHistory: chatMessages,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (data.error) {
+        setChatMessages(prev => [...prev, { role: 'assistant', content: `Error: ${data.error}` }])
+      } else {
+        setChatMessages(prev => [...prev, { role: 'assistant', content: data.response }])
+      }
+    } catch (error: any) {
+      console.error('Error sending chat message:', error)
+      setChatMessages(prev => [...prev, { role: 'assistant', content: 'Failed to get a response from the AI.' }])
+    } finally {
+      setChatLoading(false)
+    }
+  }
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Screen Content Recognition</CardTitle>
-        <CardDescription>
-          Capture and analyze screen content, extract text, and detect mathematical equations
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Button 
-              className="w-full" 
-              variant="outline"
-              onClick={captureScreen}
-              disabled={loading}
-            >
-              {loading ? 'Processing...' : 'Capture Screen'}
-            </Button>
-            <Button 
-              className="w-full" 
-              variant="outline"
-              onClick={() => setResults('Feature coming soon...')}
-            >
-              Extract Text
-            </Button>
-            <Button 
-              className="w-full" 
-              variant="outline"
-              onClick={() => setResults('Feature coming soon...')}
-            >
-              Find Text
-            </Button>
-            <Button 
-              className="w-full" 
-              variant="outline"
-              onClick={() => setResults('Feature coming soon...')}
-            >
-              Detect Equations
-            </Button>
-          </div>
-          <div className="border rounded-lg p-4">
-            <h3 className="font-semibold mb-2">Analysis Results</h3>
-            <div className="text-sm text-muted-foreground whitespace-pre-wrap">
-              {results || 'Capture screen content to see results here'}
+    <Card className="h-[calc(100vh-8rem)] flex flex-col">
+      <CardHeader className="flex flex-row justify-between items-center">
+        <div>
+          <CardTitle>Screen Content Recognition & Chat</CardTitle>
+          <CardDescription>
+            Capture and analyze screen content, then chat with AI about it.
+          </CardDescription>
+        </div>
+        <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+          <SheetTrigger asChild>
+            <Button variant="outline">{sheetOpen ? "Hide Chat" : "Show Chat"}</Button>
+          </SheetTrigger>
+          <SheetContent className="w-full md:max-w-[700px] lg:max-w-[900px] flex flex-col h-full">
+            <SheetHeader>
+              <SheetTitle>Analysis & Chat</SheetTitle>
+              <SheetDescription>
+                {loading ? "Analyzing..." : "Review screen analysis and chat with the AI."}
+              </SheetDescription>
+            </SheetHeader>
+            <div className="flex-1 flex flex-col py-4 overflow-hidden">
+              <ScrollArea className="flex-1 pr-4" ref={chatScrollRef}>
+                <div className="text-sm text-muted-foreground whitespace-pre-wrap">
+                  {results && (
+                    <div className="mb-4 p-2 rounded-lg bg-gray-800 text-gray-100">
+                      <h4 className="font-semibold mb-1">Initial Analysis:</h4>
+                      <ReactMarkdown
+                        remarkPlugins={[remarkGfm]}
+                        rehypePlugins={[[rehypeKatex, { strict: 'ignore' }]]}
+                      >
+                        {results}
+                      </ReactMarkdown>
+                    </div>
+                  )}
+                  {chatMessages.map((msg, index) => (
+                    <div key={index} className={`mb-2 ${msg.role === 'user' ? 'text-right' : 'text-left'}`}>
+                      <span className={`inline-block p-2 rounded-lg ${msg.role === 'user' ? 'bg-blue-500 text-white' : 'bg-gray-700 text-gray-100'}`}>
+                        <ReactMarkdown
+                          remarkPlugins={[remarkGfm]}
+                          rehypePlugins={[[rehypeKatex, { strict: 'ignore' }]]}
+                        >
+                          {msg.content}
+                        </ReactMarkdown>
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+              {results && (
+                <div className="flex items-center space-x-2 mt-auto pt-4 border-t">
+                  <Input
+                    placeholder="Ask a question about the screen..."
+                    value={chatInput}
+                    onChange={(e) => setChatInput(e.target.value)}
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter') sendChatMessage()
+                    }}
+                    disabled={chatLoading}
+                  />
+                  <Button onClick={sendChatMessage} disabled={chatLoading || !chatInput.trim()}>
+                    {chatLoading ? 'Sending...' : 'Send'}
+                  </Button>
+                </div>
+              )}
             </div>
+          </SheetContent>
+        </Sheet>
+      </CardHeader>
+      <CardContent className="flex-1 p-4 overflow-hidden">
+        <div className="space-y-4">
+          <Button 
+            className="w-full" 
+            onClick={handleCaptureRequest}
+            disabled={loading}
+          >
+            {loading ? 'Processing...' : 'Capture and Analyze Screen'}
+          </Button>
+
+          {capturedImage && (
+            <div className="space-y-2">
+              <h3 className="font-semibold">Captured Image</h3>
+              <img src={capturedImage} alt="Captured Screen" className="max-w-full h-auto rounded-md border" />
+            </div>
+          )}
+
+          <div className="space-y-2">
+            <Input
+              placeholder="Text to find..."
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+            />
+            <Button 
+              className="w-full" 
+              variant="outline"
+              onClick={handleFindText}
+              disabled={!results || loading}
+            >
+              Find Text ({foundMatches} matches)
+            </Button>
           </div>
+
+          <Button 
+            className="w-full" 
+            variant="outline"
+            onClick={() => setResults('Feature coming soon...')}
+            disabled={loading}
+          >
+            Detect Equations (Coming Soon)
+          </Button>
         </div>
       </CardContent>
+      <Dialog open={showConsentDialog} onOpenChange={setShowConsentDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>External Processing Required</DialogTitle>
+            <DialogDescription>
+              Screen content analysis is a resource-intensive task that your computer may not be able to handle locally.
+              To provide you with accurate analysis, we use OpenAI's powerful AI models, which require sending screen data to their servers.
+              This ensures faster and more reliable results. Is it okay to proceed with external processing?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowConsentDialog(false)}>Cancel</Button>
+            <Button onClick={captureScreen}>Proceed</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   )
 } 
