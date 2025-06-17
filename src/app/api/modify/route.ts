@@ -22,9 +22,7 @@ export async function POST(req: Request) {
         messages: [
           {
             role: 'user',
-            content: instruction ? 
-              `Based on the following context and essay type/tone, please fulfill this request: "${instruction}". The original essay is a ${type} essay with a ${tone} tone. Here's the full essay: \n\n${context}\n\n${text ? `And here is the specific text to modify: ${text}` : ''}` :
-              `Modify the following text to be more ${tone} while maintaining the same meaning. The text is part of a ${type} essay. Here's the full context:\n\n${context}\n\nText to modify:\n${text}`
+            content: `Based on the following context and essay type/tone, please fulfill this request: "${instruction}". The original essay is a ${type} essay with a ${tone} tone. Here's the full essay: \n\n${context}\n\n${text ? `And here is the specific text to modify: ${text}` : ''}. Just respond with the changes, do not say stuff like "Sure, here is the changed paragraph". Just respond with the changed paragraph, no other details, and do not use markdown.`
           }
         ],
         stream: false

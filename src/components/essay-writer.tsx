@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, Dispatch, SetStateAction } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescription } from '@/components/ui/sheet'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from '@/components/ui/dialog'
 
 export function EssayWriter() {
   const [topic, setTopic] = useState('')
@@ -25,6 +26,7 @@ export function EssayWriter() {
   const [sheetOpen, setSheetOpen] = useState(true)
   const [modificationPrompt, setModificationPrompt] = useState('')
   const [wordCount, setWordCount] = useState(0)
+  const [dialogIsOpen, setDialogIsOpen] = useState(false)
 
   useEffect(() => {
     if (essayRef.current) {
@@ -86,7 +88,7 @@ export function EssayWriter() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          text: selectedText || modificationPrompt,
+          text: selectedText || essay,
           context: essay,
           type,
           tone,
@@ -108,6 +110,7 @@ export function EssayWriter() {
         setEssay(newEssay)
         setSelectedText('')
         setModificationPrompt('')
+        setDialogIsOpen(false)
       }
     } catch (error) {
       console.error('Error modifying text:', error)
@@ -214,18 +217,57 @@ export function EssayWriter() {
           </SheetContent>
         </Sheet>
       </CardHeader>
-      <CardContent className="flex-1 p-4 overflow-hidden relative">
+      <CardContent className="flex-1 p-4 flex flex-col">
         <Textarea
           ref={essayRef}
           value={essay}
           onChange={(e) => setEssay(e.target.value)}
           onMouseUp={handleTextSelection}
-          className="w-full h-full text-sm text-foreground whitespace-pre-wrap resize-none border-none focus-visible:ring-0 focus-visible:ring-offset-0"
+          className="w-full flex-1 text-sm text-foreground whitespace-pre-wrap resize-none border-none focus-visible:ring-0 focus-visible:ring-offset-0"
           placeholder="Generate an essay to see it here..."
         />
-        <div className="absolute bottom-2 left-4 text-lg text-muted-foreground">
+        <div className="mt-2 text-lg text-muted-foreground text-left">
           Word Count: {wordCount}
         </div>
+        <Dialog open={dialogIsOpen} onOpenChange={setDialogIsOpen}>
+          <DialogTrigger asChild>
+            <Button
+              className="absolute bottom-2 right-4"
+              disabled={!selectedText && !essay.trim()}
+            >
+              Ask AI
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Ask AI to Refine</DialogTitle>
+              <DialogDescription>
+                Provide instructions for the AI to modify the selected text or the entire essay.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <Textarea
+                value={selectedText || essay}
+                readOnly
+                className="col-span-4 min-h-[100px] bg-muted"
+              />
+              <Textarea
+                placeholder="How would you like the AI to modify this text?"
+                value={modificationPrompt}
+                onChange={(e) => setModificationPrompt(e.target.value)}
+                className="col-span-4 min-h-[100px]"
+              />
+            </div>
+            <DialogFooter>
+              <Button
+                onClick={modifySelectedText}
+                disabled={isModifying || (!selectedText && !modificationPrompt.trim())}
+              >
+                {isModifying ? 'Modifying...' : 'Apply Modification'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </CardContent>
     </Card>
   )
