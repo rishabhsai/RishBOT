@@ -1,38 +1,42 @@
 import { NextResponse } from 'next/server'
-import { Ollama } from 'langchain/llms/ollama'
 
 export async function POST(req: Request) {
   try {
-    const { step, problem, type } = await req.json()
+    const { problem, solution, followUp, type, history } = await req.json()
 
-    if (!step || !problem || !type) {
+    if (!problem || !solution || !followUp || !type) {
       return NextResponse.json(
-        { error: 'Step, problem, and type are required' },
+        { error: 'Problem, solution, followUp, and type are required' },
         { status: 400 }
       )
     }
 
-    const llm = new Ollama({
-      baseUrl: 'http://localhost:11434',
-      model: 'gemma:2b',
+    let historyText = ''
+    if (history && Array.isArray(history)) {
+      history.forEach((item, idx) => {
+        historyText += `\n\nQ${idx+1}: ${item.question}\nA${idx+1}: ${item.answer}`
+      })
+    }
+
+    const response = await fetch('http://localhost:11434/api/chat', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gemma:2b',
+        messages: [
+          {
+            role: 'user',
+            content: `You are an expert at explaining ${type} problems. Here is the original problem and the solution provided so far. The user may ask follow-up questions. Always get straight to the point. Do NOT say things like 'Sure' or 'Here's a detailed response to the follow-up question:'—just answer directly.\n\nOriginal problem: ${problem}\nSolution so far: ${solution}${historyText}\nFollow-up request: ${followUp}\n\nRespond to the follow-up in detail, concisely, and explain`
+          }
+        ],
+        stream: false
+      })
     })
 
-    const prompt = `I need a more detailed explanation for this step in solving a ${type} problem.
-Original problem: ${problem}
-Current step: ${step}
-
-Please provide a more detailed explanation of this step, including:
-1. Why this step is necessary
-2. The mathematical/physical principles involved
-3. Any formulas or concepts used
-4. Common mistakes to avoid
-5. Tips for understanding this step better
-
-Make the explanation clear and easy to understand.`
-
-    const expandedContent = await llm.call(prompt)
-
-    return NextResponse.json({ expandedContent })
+    const data = await response.json()
+    return NextResponse.json({ expandedStep: data.message.content })
   } catch (error) {
     console.error('Error expanding step:', error)
     return NextResponse.json(

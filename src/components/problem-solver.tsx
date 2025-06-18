@@ -12,6 +12,10 @@ export function ProblemSolver() {
   const [solution, setSolution] = useState('')
   const [loading, setLoading] = useState(false)
   const solutionRef = useRef<HTMLDivElement>(null)
+  const [showFollowUpInput, setShowFollowUpInput] = useState(false)
+  const [followUp, setFollowUp] = useState('')
+  const [followUpLoading, setFollowUpLoading] = useState(false)
+  const [chatHistory, setChatHistory] = useState<{question: string, answer: string}[]>([])
 
   useEffect(() => {
     if (solutionRef.current) {
@@ -62,6 +66,37 @@ export function ProblemSolver() {
     }
   }
 
+  const sendFollowUp = async () => {
+    if (!followUp.trim()) return
+    try {
+      setFollowUpLoading(true)
+      const response = await fetch('/api/expand-step', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          problem,
+          solution,
+          followUp,
+          type,
+          history: chatHistory,
+        }),
+      })
+      const data = await response.json()
+      if (data.error) {
+        setChatHistory(prev => [...prev, { question: followUp, answer: `Error: ${data.error}` }])
+      } else {
+        setChatHistory(prev => [...prev, { question: followUp, answer: data.expandedStep }])
+      }
+      setFollowUp('')
+    } catch (error) {
+      setChatHistory(prev => [...prev, { question: followUp, answer: 'Failed to get follow-up response' }])
+    } finally {
+      setFollowUpLoading(false)
+    }
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -101,6 +136,34 @@ export function ProblemSolver() {
             <div ref={solutionRef} className="text-sm text-muted-foreground whitespace-pre-wrap">
               {solution || 'Enter a problem to see the solution here'}
             </div>
+            {solution && !showFollowUpInput && (
+              <Button className="mt-4" variant="outline" onClick={() => setShowFollowUpInput(true)}>
+                Reply / Ask Follow-up
+              </Button>
+            )}
+            {showFollowUpInput && (
+              <div className="mt-4 space-y-2">
+                <div className="flex flex-col gap-2">
+                  {chatHistory.map((item, idx) => (
+                    <div key={idx} className="bg-muted p-2 rounded border text-sm">
+                      <div className="font-semibold text-primary">You:</div>
+                      <div className="mb-1">{item.question}</div>
+                      <div className="font-semibold text-primary">AI:</div>
+                      <div>{item.answer}</div>
+                    </div>
+                  ))}
+                </div>
+                <Textarea
+                  placeholder="Ask the AI to explain more, give an example, etc."
+                  value={followUp}
+                  onChange={e => setFollowUp(e.target.value)}
+                  className="min-h-[80px]"
+                />
+                <Button onClick={sendFollowUp} disabled={followUpLoading || !followUp.trim()}>
+                  {followUpLoading ? 'Asking...' : 'Send'}
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </CardContent>
